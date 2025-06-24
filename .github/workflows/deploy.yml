@@ -54,7 +54,8 @@ jobs:
       - name: Build 和 push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: Dockerfile-slim
+          context: .
+          file: Dockerfile-slim
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ github.repository }}:no-chrome-latest
