@@ -5,10 +5,10 @@ FROM node:18-slim AS builder
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates wget gnupg fonts-noto-cjk fonts-wqy-zenhei \
     && rm -rf /var/lib/apt/lists/*
-# Chrome密钥添加
+# Chrome 密钥添加
 RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
     && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list
-# Chrome安装
+# Chrome 安装
 RUN apt-get update && apt-get install -y --no-install-recommends google-chrome-stable \
     && rm -rf /var/lib/apt/lists/*
 
@@ -35,9 +35,14 @@ FROM node:18-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgtk-3-0 libnss3 libasound2 libxtst6 libx11-xcb1 libxcomposite1 libxdamage1 \
     libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 libcairo2 libatk1.0-0 libatk-bridge2.0-0 \
-    fontconfig fonts-noto-cjk fonts-wqy-zenhei libvulkan1 \
+    fontconfig fonts-noto-cjk fonts-wqy-zenhei libvulkan1 libmagic1 file \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+# 创建符号链接解决路径问题
+RUN ln -s /usr/lib/x86_64-linux-gnu/libmagic.so.1 /usr/lib/libmagic-1.so \
+    && ln -s /usr/lib/x86_64-linux-gnu/libmagic.so.1 /usr/lib/libmagic.so.1
+# 验证库文件存在
+RUN ls -l /usr/lib/libmagic* && echo "LibMagic verification passed"
 
 # 复制 Chrome 二进制及关键库
 COPY --from=builder /usr/bin/google-chrome-stable /usr/bin/
@@ -66,8 +71,10 @@ RUN mkdir -p /app/local-storage \
 USER node
 
 # 设置环境变量
-ENV CHROME_PATH=/usr/bin/google-chrome-stable
-ENV PUPPETEER_ARGS="--no-sandbox,--disable-setuid-sandbox,--disable-dev-shm-usage"
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable \
+    CHROME_PATH=/usr/bin/google-chrome-stable \
+    PUPPETEER_ARGS="--no-sandbox,--disable-setuid-sandbox,--disable-dev-shm-usage"
 
 # 暴露端口
 EXPOSE 3000
