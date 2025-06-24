@@ -50,4 +50,4 @@ jobs:
           tags: |
             ${{ env.REGISTRY }}/${{ github.repository }}:latest
             ${{ env.REGISTRY }}/${{ github.repository }}:${{ env.VERSION }}
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
