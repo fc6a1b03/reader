@@ -14,8 +14,8 @@ jobs:
       - name: Get timestamp
         id: timestamp
         run: |
-          echo "full-latest=$(date +%s)" >> $GITHUB_OUTPUT
-          echo "no-chrome-latest=$(date +%s)" >> $GITHUB_OUTPUT
+          echo "full-latest=$(date +%s)" >> $GITHUB_ENV
+          echo "no-chrome-latest=$(date +%s)" >> $GITHUB_ENV
         
       - name: Checkout code
         uses: actions/checkout@v4
