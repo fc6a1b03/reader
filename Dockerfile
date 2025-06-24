@@ -18,12 +18,11 @@ RUN apt-get update && apt-get install -y \
     fonts-ipafont \
     fonts-unfonts-core \
     libfreetype6 \
-    # 修复Chrome安装依赖
     ca-certificates \
     apt-transport-https \
     && rm -rf /var/lib/apt/lists/*
 
-# 单独处理Google Chrome安装（修复包定位问题）
+# 安装Google Chrome
 RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/googlechrome-keyring.gpg \
     && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/googlechrome-keyring.gpg] https://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
     && apt-get update -y \
