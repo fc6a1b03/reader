@@ -18,8 +18,7 @@ RUN apt-get update && apt-get install -y \
     fonts-wqy-zenhei \
     fonts-ipafont \
     fonts-unfonts-core \
-    libfreetype6 \  # 修复字体渲染依赖 
-    # 添加 Google Chrome
+    libfreetype6 \
     && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/googlechrom-keyring.gpg \
     && echo "deb [signed-by=/usr/share/keyrings/googlechrom-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
     && apt-get update \
@@ -31,8 +30,7 @@ RUN mkdir -p /usr/share/fonts/truetype/google-fonts \
     && wget -q https://github.com/google/fonts/archive/main.tar.gz -O gf.tar.gz \
     && tar -xf gf.tar.gz --strip-components=1 -C /usr/share/fonts/truetype/google-fonts \
     && rm gf.tar.gz \
-    # 刷新字体缓存并验证路径
-    && fc-cache -fv  # 强制刷新缓存 
+    && fc-cache -fv
 
 # 设置环境变量
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
