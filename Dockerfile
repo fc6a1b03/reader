@@ -53,7 +53,7 @@ RUN npm run build
 RUN mkdir -p /app/local-storage && chmod 777 /app/local-storage
 
 # 字体验证（修正版）
-RUN fc-list | grep -i "PT[[:space:]]*Sans" \  # 兼容空格变体 [[39][58]]
+RUN fc-list | grep -i "PT[[:space:]]*Sans" \
     && echo "Fonts verified" \
     || { echo "[WARN] PTSans not found. Installed fonts:"; fc-list; }
 
