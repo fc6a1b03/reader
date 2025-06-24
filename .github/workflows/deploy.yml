@@ -9,8 +9,14 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    
     steps:
+      - name: Get timestamp
+        id: timestamp
+        run: |
+          echo "full-latest=$(date +%s)" >> $GITHUB_OUTPUT
+          echo "no-chrome-latest=$(date +%s)" >> $GITHUB_OUTPUT
+        
       - name: Checkout code
         uses: actions/checkout@v4
         with:
@@ -42,7 +48,7 @@ jobs:
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ github.repository }}:full-latest
-            ${{ env.REGISTRY }}/${{ github.repository }}:${{ date +%s }}
+            ${{ env.REGISTRY }}/${{ github.repository }}:${{ env.full-latest }}
           platforms: linux/amd64
 
       - name: Build 和 push Docker image
@@ -52,6 +58,5 @@ jobs:
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ github.repository }}:no-chrome-latest
-            ${{ env.REGISTRY }}/${{ github.repository }}:${{ date +%s }}
+            ${{ env.REGISTRY }}/${{ github.repository }}:${{ env.no-chrome-latest }}
           platforms: linux/amd64
-
