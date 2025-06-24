@@ -1,13 +1,15 @@
 # ======== 构建阶段 ========
 FROM node:18-slim AS builder
 
-# 安装系统依赖（包含构建工具和字体）
+# 基础依赖安装
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    wget gnupg fonts-noto-cjk fonts-wqy-zenhei \
-    && wget -qO- https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/googlechrome-keyring.gpg \
-    && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/googlechrome-keyring.gpg] https://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
-    && apt-get update -y \
-    && apt-get install -y --no-install-recommends google-chrome-stable \
+    ca-certificates wget gnupg fonts-noto-cjk fonts-wqy-zenhei \
+    && rm -rf /var/lib/apt/lists/*
+# Chrome密钥添加
+RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list
+# Chrome安装
+RUN apt-get update && apt-get install -y --no-install-recommends google-chrome-stable \
     && rm -rf /var/lib/apt/lists/*
 
 # 设置环境变量
