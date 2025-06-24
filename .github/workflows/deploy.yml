@@ -11,12 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Get timestamp
-        id: timestamp
-        run: |
-          echo "full-latest=$(date +%s)" >> $GITHUB_ENV
-          echo "no-chrome-latest=$(date +%s)" >> $GITHUB_ENV
-        
       - name: Checkout code
         uses: actions/checkout@v4
         with:
@@ -41,23 +35,17 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Get timestamp
+        id: timestamp
+        run: |
+          echo "full-latest=$(date +%s)" >> $GITHUB_ENV
+      
       - name: Build 和 push Docker image
         uses: docker/build-push-action@v6
         with:
           context: .
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ github.repository }}:full-latest
+            ${{ env.REGISTRY }}/${{ github.repository }}:latest
             ${{ env.REGISTRY }}/${{ github.repository }}:${{ env.full-latest }}
-          platforms: linux/amd64
-
-      - name: Build 和 push Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: Dockerfile-slim
-          push: true
-          tags: |
-            ${{ env.REGISTRY }}/${{ github.repository }}:no-chrome-latest
-            ${{ env.REGISTRY }}/${{ github.repository }}:${{ env.no-chrome-latest }}
           platforms: linux/amd64
