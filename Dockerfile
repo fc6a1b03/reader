@@ -1,7 +1,7 @@
-# Use Node.js 18 slim image (Debian-based)
+# 使用 Node.js 18 精简镜像（基于 Debian）
 FROM node:18-slim
 
-# Install essential tools and libraries
+# 安装核心工具、库及字体包
 RUN apt-get update && apt-get install -y \
     chromium \
     libmagic-dev \
@@ -18,47 +18,49 @@ RUN apt-get update && apt-get install -y \
     fonts-wqy-zenhei \
     fonts-ipafont \
     fonts-unfonts-core \
+    libfreetype6 \  # 修复字体渲染依赖 
+    # 添加 Google Chrome
     && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/googlechrom-keyring.gpg \
-    && echo "deb [signed-by=/usr/share/keyrings/googlechrom-keyring.gpg arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
+    && echo "deb [signed-by=/usr/share/keyrings/googlechrom-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
     && apt-get update \
     && apt-get install -y google-chrome-stable \
     && rm -rf /var/lib/apt/lists/*
 
-# Install all Google Fonts (adds ~2GB)
-RUN wget https://github.com/google/fonts/archive/main.tar.gz -O gf.tar.gz \
-    && tar -xf gf.tar.gz \
-    && mkdir -p /usr/share/fonts/truetype/google-fonts \
-    && find $PWD/fonts-main/ -name "*.ttf" -exec install -m644 {} /usr/share/fonts/truetype/google-fonts/ \; || true \
-    && rm -f gf.tar.gz \
-    && fc-cache -fv
+# 安装 Google Fonts（包含 PTSans）
+RUN mkdir -p /usr/share/fonts/truetype/google-fonts \
+    && wget -q https://github.com/google/fonts/archive/main.tar.gz -O gf.tar.gz \
+    && tar -xf gf.tar.gz --strip-components=1 -C /usr/share/fonts/truetype/google-fonts \
+    && rm gf.tar.gz \
+    # 刷新字体缓存并验证路径
+    && fc-cache -fv  # 强制刷新缓存 
 
-# Set environment variables
+# 设置环境变量
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
 
-# Set working directory
+# 工作目录设置
 WORKDIR /app
 
-# Copy package.json and package-lock.json
+# 复制依赖文件并安装
 COPY backend/functions/package*.json ./
-
-# Install dependencies
 RUN npm ci
 
-# Copy the rest of the application code
+# 复制应用代码
 COPY backend/functions .
 
-# Build the application
+# 构建应用
 RUN npm run build
 
-# Create local storage directory and set permissions
+# 创建存储目录
 RUN mkdir -p /app/local-storage && chmod 777 /app/local-storage
 
-# Validate font installation (optional debug step)
-RUN fc-list | grep -i "ptsans" && echo "Fonts verified"
+# 字体验证（修正版）
+RUN fc-list | grep -i "PT[[:space:]]*Sans" \  # 兼容空格变体 [[39][58]]
+    && echo "Fonts verified" \
+    || { echo "[WARN] PTSans not found. Installed fonts:"; fc-list; }
 
-# Expose the port the app runs on
+# 暴露端口
 EXPOSE 3000
 
-# Start the application
+# 启动命令
 CMD ["node", "build/server.js"]
