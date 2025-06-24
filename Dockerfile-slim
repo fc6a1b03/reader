@@ -1,0 +1,54 @@
+FROM node:18-slim
+
+# 安装核心库及字体包
+RUN apt-get update && apt-get install -y \
+    libmagic-dev \
+    build-essential \
+    python3 \
+    wget \
+    gnupg \
+    fontconfig \
+    fonts-dejavu \
+    fonts-liberation \
+    fonts-freefont-ttf \
+    fonts-noto \
+    fonts-noto-cjk \
+    fonts-wqy-zenhei \
+    fonts-ipafont \
+    fonts-unfonts-core \
+    libfreetype6 \
+    ca-certificates \
+    apt-transport-https \
+    && rm -rf /var/lib/apt/lists/*
+
+# 设置环境变量
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=0
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=false
+ENV PUPPETEER_DOWNLOAD_HOST=https://npmmirror.com/mirrors
+
+# 工作目录设置
+WORKDIR /app
+
+# 复制依赖文件并安装
+COPY backend/functions/package*.json ./
+RUN npm ci
+
+# 复制应用代码
+COPY backend/functions .
+
+# 构建应用
+RUN npm run build
+
+# 创建存储目录
+RUN mkdir -p /app/local-storage && chmod 777 /app/local-storage
+
+# 字体验证
+RUN fc-list | grep -i "Noto" \
+    && echo "Fonts verified" \
+    || { echo "[INFO] Font checklist:"; fc-list; }
+
+# 暴露端口
+EXPOSE 3000
+
+# 启动命令（添加用户权限修复）
+CMD ["sh", "-c", "npm explore puppeteer -- npm run install && node build/server.js"]
